@@ -1,8 +1,10 @@
 package controllers
 
 import (
-	"gin-api-rest/models"
 	"gin-api-rest/database"
+	"gin-api-rest/models"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,12 +25,11 @@ func Saudacao(c *gin.Context) {
 
 func CriaNovoAluno(c *gin.Context) {
 	var aluno models.Aluno
-	if err != c.ShouldBindJSON(&aluno); err != nil {
-		e.JSON(http.StatusBadRequest, gin.H {
-			"Error": err.Error()
-		})
+	if err := c.ShouldBindJSON(&aluno); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Error": err.Error()})
 		return
 	}
 	database.DB.Create(&aluno)
-	e.JSON(http.StatusOK, aluno)
+	c.JSON(http.StatusOK, aluno)
 }

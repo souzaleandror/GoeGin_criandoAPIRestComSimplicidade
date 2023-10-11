@@ -2,6 +2,28 @@
 
 CURSO Go e Gin: criando API rest com simplicidade
 
+```
+export GO111MODULE="on" 
+
+Error = package github.com/lib/pq is not a main package
+go env -w GO111MODULE=off
+go get github.com/lib/pq
+go mod init
+
+lsof -i:8080
+Kill -9
+
+react-scripts --openssl-legacy-provider start
+go get github.com/stretchr/testify
+go get -u gorm.io/gorm
+go get github.com/lib/pq
+
+rm -rf go.mod go.sum
+go mod init "panel"  # <== replace by your own project name
+go mod tidy
+go mod vendor
+```
+
 @01-Instalando e criando a primeira rota com Gin
 
 @@01
