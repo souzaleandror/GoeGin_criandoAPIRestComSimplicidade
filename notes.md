@@ -309,3 +309,247 @@ Aprendemos como pegar informações passadas por parâmetros e retornar uma mens
 Criamos a struct de aluno, que vamos disponibilizar como recurso da nossa API.
 Na próxima aula
 Vamos aprender como conectar nosso projeto com banco de dados e exibir as informações armazenadas utilizando um Gorm!
+
+#### 11/10/2023
+
+@03-Struct, banco de dados e ORM
+
+@@01
+Projeto da aula anterior
+
+Aqui você pode baixar o zip da aula 02 ou acessar os arquivos no Github!
+
+https://github.com/alura-cursos/api_rest_gin_go/archive/refs/heads/aula_2.zip
+
+https://github.com/alura-cursos/api_rest_gin_go/tree/aula_2
+
+@@02
+Preparando o ambiente
+
+No próximo vídeo, vamos conectar nossa aplicação com banco de dados. Para isso, vamos utilizar uma imagem Postgres rodando no Docker.
+Preparando ambiente
+Para acompanhar esta aula, é recomendado que você tenha o Docker instalado.
+Caso não tenha o Docker instalado e precise de ajuda:
+
+Instalando o Docker no Windows
+Instalando o Docker no Mac
+Após a instalação do Docker, nos vídeos 3 e 4 desta aula, vamos executar este arquivo, para criar uma imagem do Postgres:
+
+version: '3'
+services:
+  postgres:
+    image: "postgres"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=root      
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data  
+
+  pgadmin-compose:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "gui@alura.com"
+      PGADMIN_DEFAULT_PASSWORD: "123456"
+    ports:
+      - "54321:80"
+    depends_on:
+      - postgresCOPIAR CÓDIGO
+Fique à vontade para alterar suas as credenciais!
+
+https://www.docker.com/products/docker-desktop
+
+https://cursos.alura.com.br/course/docker-e-docker-compose/task/29235
+
+https://cursos.alura.com.br/course/docker-e-docker-compose/task/29237
+
+https://github.com/alura-cursos/api-go-rest/blob/aula_2/docker-compose.yml
+
+@@03
+Docker e Postgres
+
+[00:00] Os dados dos alunos que nós criamos, eles estão no nosso arquivo main, e não é essa a ideia. Geralmente as aplicações reais, elas utilizam um banco de dados, seja ele relacional ou não, para armazenar todas as informações e manter os dados persistentes no banco. É isso o que queremos fazer também.
+[00:18] Assim como o exemplo do nosso curso anterior, vamos utilizar o Docker para executar e armazenar todas as nossas informações dos nossos alunos. Então o que vamos fazer? Na atividade anterior a esse vídeo você terá o script do Docker que vamos subir, com a imagem que vamos subir do Docker, para gerarmos esses alunos.
+
+[00:38] Terá uma diferença: no curso anterior nós utilizamos um script que já inseria alguns dados, que já criava a tabela através de um script SQL. Nesse curso nós teremos uma outra abordagem, eu quero mostrar uma outra forma para vocês. O que vamos fazer? Primeira coisa, vamos criar um novo arquivo. Deixa eu sair dessas pastas.
+
+[01:01] Vou criar um novo arquivo, que eu vou chamar de "docker-compose.yml". Esse arquivo, ele vai descrever tudo o que precisamos na nossa imagem. Eu vou dar um "Ctrl + V" e esse código todo que apareceu aqui, ele está na atividade anterior a esse vídeo.
+
+[01:19] Só para entendermos o que esse código faz, ele fala qual é a versão o Docker que estamos utilizando e cria dois serviços, o serviço "postgres", assim como fizemos no curso anterior, com o user root, password root, DB root.
+
+[01:34] Eu recomendo que, se você está fazendo esse curso pela primeira vez, que você não altere essas informações, para que você chegue no mesmo resultado que eu. Se você já tem uma determinada vivência, experiência, você pode ficar à vontade para alterar todas essas informações de quem será o usuário, colocar em uma variável de ambiente também.
+
+[01:51] Ele cria duas imagens, dois serviços. O primeiro com uma imagem do Postgres e o segundo com uma imagem do pgAdmin, para conseguirmos visualizar as tabelas e as informações que estamos movimentando no nosso banco de dados. No pgAdmin ele usa a imagem, do pgAdmin, e ele tem como default esse "gui@alura.com" e essa senha, "123456".
+
+[02:11] Lembrando que estamos utilizando o ambiente de desenvolvimento, é óbvio que no ambiente de produção nós jamais usaríamos essas senhas, você pode alterar essa senha e ela vai servir para quê? Essa senha, esse usuário, esse e-mail e essa senha, vão servir para acessarmos o pgAdmin na porta 54321:80. O banco de dados mesmo está na porta 5432:5432.
+
+[02:34] Então vamos subir do "docker-compose.yml" duas imagens, dois serviços, um do Postgres e outro do pgAdmin. Vamos fazer isso então? Eu já tenho o meu "docker-compose.yml", o que eu vou fazer? Como vamos dar o foco nele, eu vou abrir um outro terminal e digitar docker-compose up. Dei um "Enter".
+
+[02:53] Ele vai começar a subir, a criar essas nossas imagens, essas duas imagens. Essa ação pode demorar um pouco, então eu recomendo que depois que você fizer isso, se quiser fazer um suco de laranja, passar um café para a família, dar um abraço no gato, no cachorro, fique à vontade também.
+
+[03:11] Ele está subindo, ele está trazendo tudo o que necessário para carregar a nossa aplicação. Deixa eu ver se ela já subiu aqui. No navegador, se eu colocar "localhost:54321", para ver o nosso pgAdmin, vamos ver o que acontece? Ainda não subiu, ele está carregando. Vamos ver, maravilha subiu, eu estou usando 200 de zoom para conseguirmos enxergar melhor.
+
+[03:33] Aqui nós temos o pgAdmin e um caminho com e-mail - lembrando, qual é esse e-mail mesmo? Esse e-mail que nós criamos no código. Então antes de você subir o seu "docker-compose", use outro e-mail - ou se você quiser usar o meu também como base, só para aprender, está tranquilo.
+
+[03:48] Então gui@alura.com e a senha mais difícil do universo: 123456. Eu vou tirar o zoom, dou um "Login". Observe que interessante, ele vai criar esse nosso servidor.
+
+[04:02] Temo aqui no "Servers", deixa eu ver, aqui no "Servers" não tem absolutamente nada. Nós precisaremos criar um servidor novo. Como fazemos isso? Primeira coisa, venho no menu lateral esquerdo, no "Servers", clico com o botão direito, "Create", coloco "Server...". Eu quero criar um novo servidor que vai ficar ouvindo aquele banco de dados que nós temos.
+
+[04:18] Para isso, o que a vamos fazer? Precisamos passar algumas informações para ele. Por exemplo, qual é o nome desse servidor? Vamos pesquisar no código o nome que vamos utilizar para ele.
+
+[04:31] Nós demos o nome para ele de - eu vou dar um nome para esse banco de dados de "alunos", vai se chamar alunos. Ele será um servidor mesmo, eu vou deixar esse background, essa parte toda normal. Na aba "Connections" nós temos uma parte importante, o host.
+
+[04:43] Nós precisamos falar qual é o caminho, qual é o endpoint que vai conter as informações desse banco de dados. Para isso, nós vamos fazer o quê? Eu vou criar um novo terminal no VS Code, repare que eu estou com o servidor do Go, o "docker-compose" rodando e um novo terminal, mais um terminal.
+
+[05:00] Eu vou executar um comando para conseguirmos visualizar qual é a porta que estamos utilizando para esse nosso serviço do Postgres. Eu vou falar assim: docker-compose exec, eu quero executar o Postgres e vou colocar SH, exec postgres sh, para acessarmos essa máquina. Eu vou digitar hostname -i.
+
+[05:31] Dou um "Enter" e ele dá um valor, 172.21.0.2. Eu vou copiar esse hostname, "Ctrl + C", vou na configuração e coloco ele no "Hostname/adress", vai ser esse IP. A porta será a porta que já estamos acostumados, a 5432, que estamos utilizando. O "username" será o "root", o username é exatamente esse que temos no código, POSTGRES_USER=root.
+
+[05:55] O password root e o DB root também. Então user "root", "Password" "root" e o DB, cadê o DB? Não está aqui. Aqui, "Maintance", aqui também vai ser "root".
+
+[06:06] Eu vou salvar e temos agora um servidor para os alunos. Se eu vier em "Database > root > Schemas", repare que aqui em "Tables", tabelas, não temos nada ainda.
+
+[06:21] É isso o que vamos ver na sequência. Como é que agora nós pegamos esse banco de dados que nós conectamos no pgAdmin com o Postgres mesmo e conectamos com a nossa aplicação, para utilizarmos o banco de dados rodando no Docker.
+
+@@04
+GORM e migração dos dados
+
+[00:00] Para facilitar a comunicação do banco de dados com a nossa aplicação GO, nós vamos usar um ORM que nós vimos no curso anterior, que é o Gorm. Só que eu quero mostrar uma outra forma de conseguirmos criar as tabelas e os registros na nossa aplicação. A primeira coisa que vamos fazer será instalar o Gorm na nossa API Go e conectar com o banco de dados.
+[00:21] Para instalar o Gorm eu estou com a documentação dele aberta, se você quiser pesquisar "gorm golang", aparece esse primeiro link. Aqui tem a forma como instalamos o Gorm, é go get -u gorm.io/gorm.
+
+[00:37] Vou copiar essa linha, no nosso código eu vou instalar ele aqui, dei o Gorm para ele instalar e ele adicionou o Gorm. Agora, o que vamos fazer será criar um pacote responsável por realizar essa comunicação com o banco de dados, essa conexão com o banco de dados. Vou criar um pacote chamado "database".
+
+[00:58] Dentro de "database" eu vou criar um arquivo chamado "db.go". Esse arquivo "db.go", ele faz parte do pacote package database e todo o código que faz a conexão com o banco de dados, se formos na documentação do Gorm - vou colocar aqui: conectando com database, conectando com o banco de dados. Nós estamos utilizando o banco de dados Postgres, então seria esse código aqui.
+
+[01:22] Só que eu tenho um código um pouco mais fácil, para conseguirmos visualizar, quebrando algumas etapas. Eu vou deixar esse código na descrição do vídeo e na atividade anterior, no Preparando o Ambiente. O código vai ser esse, vou dar um "Ctrl + V", que eu já tinha copiado.
+
+[01:36] Vou salvar esse código, ele trouxe aqui tudo o que nós precisamos. Repare que no "gorm.io/driver/postgres" ele está dando uma mensagem, ele está falando: “olha, eu não encontrei nenhum driver chamado Postgres”.
+
+[01:51] Vou segurar o "Ctrl" e vou clicar em cima do link aqui, para visualizarmos esse erro que ele fala. O que acontece? Esse erro, ele diz: “olha, você não instalou o driver do Postgres”. Então precisamos instalar. No VS Code, aqui do lado esquerdo, quando eu clico nessa linha, essa lâmpada aparece aqui.
+
+[02:09] Quando eu clico nela, ele fala: "go get package gorm.io/driver/postgres". Caso essa lâmpada não apareça para você, você pode colocar exatamente esse comando no seu terminal, go get package gorm.io/driver/postgres. Eu vou clicar nessa lâmpada para instalar, repare que ele está pensando, ele já está fazendo essa instalação com o go get. Depois não teremos nenhuma mensagem, essa marcação vai sumir.
+
+[02:39] Agora que ela sumiu, olha que interessante, no curso anterior nós criávamos a tabela do nosso modelo, com base na nossa struct, colocávamos alguns registros utilizando a linguagem SQL. Existe uma outra forma de realizarmos isso com o Go e com o Gorm. Nós podemos falar: eu tenho essa struct, com base nela, crie uma tabela no banco de dados para mim. E ele coloca outros campos como o ID, como quando aquele campo foi criado ou não.
+
+[03:09] E eu quero mostrar isso na documentação para vocês. Vou voltar na documentação do Gorm, vou colocar "gorm.io/docs", declarando modelos, nesse segundo link.
+
+[03:21] Repare que aqui ele tem uma descrição de um modelo, um user com nome, e-mail e todos os campos aqui. Ele fala de algumas convenções e podemos falar qual será a primary key, que o ID será a primary key quando queremos definir isso manualmente. Mas existe uma forma de conseguirmos declarar o Gorm “embedando” alguns códigos. Olha que interessante.
+
+[03:44] Se formos na nossa struct e colocarmos gorm.Model, o que vai acontecer? Repare que ele tem um tipo, user, uma struct de user, que ele só tem um nome, ele falou gorm.Model. Isso é equivalente a ele colocar no ID quando aquele registro foi criado, quando o registro foi atualizado, quando o registro foi deletado e a última vez que ele foi atualizado.
+
+[04:11] Então repare que ele vai guardar uma série de informações só de colocarmos esse gorm.Model na nossa struct. Então eu vou fazer isso, vou na nossa struct, no nosso modelo de aluno, "aluno.go" e vou falar: o nosso aluno tem um nome, um CPF, um RG e ele será do tipo gorm.Model. Vou dar um "Enter" aqui.
+
+[04:32] Ele vai fazer um import aqui em cima para mim. Só de eu realizar essa linha ele vai inserir para nós o ID, quando foi criado, a última vez que foi atualizado e quando foi deletado. Agora, o que eu quero fazer é o seguinte, eu quero pedir para o Gorm criar essa tabela no banco de dados, no nosso Postgres. Como faremos isso?
+
+[04:54] Aqui, na nossa string que realiza a conexão, se a conexão não tiver nenhum erro e ela for realizada com sucesso, nós podemos fazer o seguinte, vou pegar o nosso DB, DB.AutoMigrate(). Com esse auto migrate nós poderemos inserir qual é a struct que queremos inserir no nosso banco de dados.
+
+[05:18] Para isso vou passar o endereço de memória dos nossos modelos, DB.AutoMigrate(&models.Aluno). Dessa forma ele vai falar: eu vou migrar - deixa eu salvar aqui, para ele trazer esse pacote, isso, models.Aluno, ele é uma instância dele, esqueci de pegar a instância dele, (&models.Aluno{}).
+
+[05:39] Agora sim. Para eu criar uma tabela no banco de dados, com base na minha struct, utilizando o Gorm, eu posso executar esse comando DB.AutoMigrate(&models.Aluno{}), passando o endereço de memória da struct que eu quero criar uma instância dela. Ele vai gerar para nós, no nosso Postgres - deixa eu abrir o Postgres, ele está no "localhost:54321".
+
+[06:07] Aqui no Postgres, deixa eu fazer a minha senha, 123456, com aquele e-mail. Ele está carregando o meu servidor, o meu "docker-compose" está de pé, deixa eu só ter certeza aqui do lado do terminal. O "docker-compose" está de pé.
+
+[06:27] Está carregando o servidor do Postgres. O que eu vou fazer agora é conectar com o pgAdmin, vou colocar o meu e-mail, a minha senha, 123456, senha muito difícil. Vou esperar ele carregar aqui, não precisa checar, não precisa guardar a senha.
+
+[06:43] Vou em servidores, temos o servidor de alunos e ele está pedindo a senha. A senha é "root", com base no que tínhamos criado naquele momento.
+
+[06:51] Carregou, venho em tabelas e não tem nada. Então o que nós fizemos no nosso código? Nós criamos um pacote de database que realiza a conexão e faz esse DB.AutoMigrate, no nosso banco de dados, com base no nosso modelo de aluno. E nós inserimos esse gorm.Model, para ele incluir o ID, o created at, o updated at e o deleted at.
+
+[07:14] O que eu preciso fazer agora é executar esse código. Quando? Quando o meu programa iniciar, eu já quero que ele tenha essa migração dos modelos no banco de dados. Então o que eu vou fazer? No meu código main, eu vou dar um "Enter". A primeira coisa que eu quero que ele faça é: vá no meu database, pegue e faça a conexão com o meu banco de dados, database.ConectarComBancoDeDados().
+
+[07:34] Essa conexão que ele fará com o banco de dados já vai permitir que ele crie a nossa tabela de alunos no Postgres. Eu vou no terminal do Go e vou executar esse comando, go run main.go. Quando eu der um "Enter", repare o que vai acontecer, ele vai dar uma pensada e vai falar: nós estamos ouvindo na porta 8080.
+
+[07:55] Vou no nosso banco de dados, na nossa tabela, clicar com o botão direito, dar um "Refresh". Olha que interessante que vai aparecer: não apareceu nada. Deixa eu dar um refresh no meu banco de dados. Refresh no meu database de alunos, cliquei com o botão direito, "Refresh". Venho em "Database > root", que estamos utilizando, "Schemas > Tables" e temos aqui a tabela de alunos. Quando eu clico em "alunos", olha que interessante.
+
+[08:21] Eu vou em colunas, olha só, ele vai mostrar "cpf", "created_at", "deleted_at", "id", "nome", "rg" e "updated_at".
+
+[08:29] Nós podemos até ver de uma outra forma, clicando com o botão direito em "alunos", eu vou em "View/Edit Data", vou ver todas as linhas e aqui teremos todos aqueles campos que eu tinha comentado com vocês. Nós temos o ID, quando foi criado, quando foi atualizado, deletado, nome, CPF e RG.
+
+[08:46] O que vamos fazer, na sequência, é criar, de fato, um aluno, utilizando o Gorm em parceria com o Gin.
+
+@@05
+Criando alunos
+
+[00:00] Agora que conectamos a nossa API com o nosso servidor, o que queremos fazer é criar novos alunos. Se olharmos o nosso código, nós não temos nenhum aluno registrado. Nós já temos os campos de ID, nome, CPF, mas não conseguimos gerar alunos. O que eu quero fazer?
+[00:15] Eu quero enviar uma solicitação post, com os dados desse novo aluno no corpo da requisição, e inserir esse novo aluno no banco de dados. Vamos ver como fazemos isso? Para começar, vamos precisar de dois arquivos, alterar dois arquivos, o arquivo de rotas, porque vamos gerar uma nova rota, "Ctrl + P" aqui. E o arquivo de controller. O "Ctrl + P" é só para abrirmos essas abas que aparecem, os arquivos específicos.
+
+[00:41] Então terá um cara responsável apenas em criar esse novo aluno, um novo controller responsável só por criar. Em "controller.go" eu vou criar uma nova função, vou chamar de func CriaNovoAluno(). Esse CriaNovoAluno, ele vai manter a convenção do que nós já temos, (c *gin.Context).
+
+[01:03] Nas nossas rotas eu vou criar um novo endpoint responsável por criar um novo aluno. r. - repare que nós usamos o .GET para recuperarmos um determinado recurso ou realizar uma determinada ação.
+
+[01:17] O que queremos fazer agora, com é criar, é uma requisição r.POST(), assim como já vimos no nosso curso anterior, utilizando o Gorilla Mux. Então é uma requisição post em r.POST("/alunos", ), nós já sabemos que quem vai atender essa requisição é esse , controllers.CriaNovoAluno).
+
+[01:37] Então já temos o endpoint, falamos que a requisição é uma ação post, o que vamos fazer agora é implementar essa função para que ela de fato crie um novo aluno. Em "controller.go", a primeira coisa de tudo, precisaremos de um endereço de memória de um aluno, para ele conseguir vincular o corpo da requisição com, de fato, a struct que nós já temos.
+
+[01:58] Para isso eu vou criar uma nova variável chamada aluno, ela será do tipo var alunos models.Aluno. Existe uma função, aqui no Gin, que conseguimos empacotar todo o corpo da solicitação, da entrada, com base na struct que nós já temos. Isso vai facilitar muito, não precisaremos falar: pegue, do corpo da requisição, o nome e vincule com o nome desse aluno, o CPF vinculando com a struct CPF.
+
+[02:26] Ele já faz isso para nós, então eu vou mostrar isso para vocês. Primeira coisa, eu vou verificar se tem alguma mensagem de erro nessa ação que ele vai fazer, if err := c.Should, que é essa função que eu estou falando para vocês, c.ShouldBind.
+
+[02:47] Repare que ele tem várias coisas, várias ações que ele pode fazer. A requisição que vai vir para nós é uma requisição JSON, então eu vou deixar c.ShouldBindJSON(). Ou seja, pegue todo o corpo da solicitação e empacote com base nessa struct que eu vou te passar agora. Qual struct vamos passar agora para ele? A struct de (&aluno); que nós temos ali em cima.
+
+[03:07] Ele já vai fazer esse vínculo de todos os alunos, que nós precisamos. Vamos verificar só se o erro não é nulo? Ponto e vírgula, se o err != nil{}, não for igual a nil, se tivermos um erro, o que vai acontecer? Nós podemos exibir uma mensagem como nós já conhecemos, por exemplo, c.JSON(), eu vou passar aqui, vou indicar o status code e vou falar: olha, é uma requisição que não deu certo.
+
+[03:32] Vou pegar (http.StatusBadRequest, ), nós não conseguimos fazer o que nós queríamos, e vou colocar aqui o , gin.H{}), que já conhecemos também. Dentro das chaves eu vou falar: nós temos um erro, vou colocar "error": e vou imprimir a mensagem de erro que vamos receber, : err.Error().
+
+[03:53] Vou trazer essas chaves para cima. Nós já indicamos que temos um erro na nossa mensagem, um erro no nosso retorno da requisição. Vou colocar um return vazio.
+
+[04:04] Caso não tenhamos erro - esse foi um status que demos erro, nós pegamos, empacotamos os dados e alguma coisa não deu certo, ele vai nos informar qual é o erro. Caso não tenhamos nenhum erro significa que conseguimos empacotar todo o corpo da requisição, os nomes, o nome do aluno, o RG e CPF, deu tudo certo, e queremos salvar isso no banco de dados.
+
+[04:26] Para isso usamos o nosso database.DB.Create(). Eu vou falar: crie um novo aluno. Endereço de memória (&aluno). Olha como fica muito simples.
+
+[04:39] Para finalizar e deixar a nossa API ainda melhor, o que eu posso fazer é informar uma mensagem falando: deu tudo certo, você criou esse aluno no banco de dados. Eu posso fazer aqui no c.JSON(), que já utilizamos na nossa mensagem de erro, só que aqui é um caso de sucesso, então (http.StatusOK, ), tudo junto. Vírgula e aqui eu vou passar o aluno que nós geramos, (http.StatusOK, aluno).
+
+[05:08] Pronto, é isso, para criarmos de fato um novo registro no nosso banco de dados, vamos precisar dessa função que pega, esse ShouldBindJSON, que é super importante, ele vai pegar todo o corpo da solicitação de entrada com base na struct de alunos que nós temos e depois colocamos uma rota post.
+
+[05:27] Vou desligar, derrubar o meu servidor, ligar ele, rodar ele mais uma vez, go run main.go, vou puxar esse tela para o lado, e vou testar isso no Postman. Você pode testar em outros locais também se você quiser, se tiver base de conhecimento em outra forma de testar a API, eu vou testar no Postman.
+
+[05:49] Vamos para o Postman. No Postman eu vou colocar que a nossa requisição. Será uma requisição "POST" para "localhost:8080/alunos/", GG, está tudo certo. Agora o que precisamos fazer é criar o corpo da requisição. Aqui eu tenho o corpo de uma requisição.
+
+[06:09] Abre chaves, nome, RG e CPF, vou colocar um RG com a quantidade de dígitos mesmo, então "rg":"1234563258", um RG fictício, o "cpf":"40255111230", coloquei qualquer coisa aqui, espero que esse CPF não seja de ninguém. Maravilha, tenho a nossa requisição, tenho essas informações.
+
+[06:32] O que eu vou fazer agora é enviar essa solicitação. O que vai acontecer? Quando eu clicar no "Send", essa nova aluna, a Ana, ela será criada no nosso banco de dados. Então estamos vinculando o nosso servidor já com o banco de dados, com a requisição post e essa maluquice toda. Vamos lá, enviei no "Send".
+
+[06:50] ID 1, olha que interessante, created at, updated e deleted at, ele falou, não foi deletado, foi criado nesse horário, nesta data, e tem aqui o nome Ana, CPF e o RG.
+
+[07:05] Até aqui tudo bem, é o comportamento que esperamos, vamos para a prova de fogo. O que eu vou fazer? No pgAdmin, em "alunos", vou colocar para visualizar todas as linhas mais uma vez, ele está pensando. Quando ele visualiza, está lá. ID 1, o deleted at null e o nome Ana, aquele CPF maluco que eu digitei e o RG também muito doido que eu digitei.
+
+[07:24] Qual é o meu desafio para você agora? Meu desafio é: crie novos alunos para essa nossa base de dados, depois nós vamos fazer coisas muito legais com isso. Eu espero que você tenha gostado, é uma forma de conectar com o banco de dados, criar uma requisição com o verbo certo para conseguirmos gerar novos alunos agora no Postgres.
+
+@@06
+Método db.AutoMigrate
+
+Durante esta aula, vimos como criar uma tabela no banco de dados com base na struct de aluno que temos no código, e como adicionar um aluno a partir de um endpoint de método POST.
+Sabendo disso, marque apenas a opção correta que representa a funcionalidade do método ‘db.AutoMigrate’ que temos no código:
+
+O método db.AutoMigrate possui a funcionalidade automática de gerar e persistir dados aleatórios no banco de dados.Estes dados aleatórios são gerados a partir da referência de memória de uma struct que é passada como parâmetro para o método.
+ 
+Alternativa correta
+O método db.AutoMigrate possui a funcionalidade de criar automaticamente novos endpoints para a aplicação.
+ 
+Alternativa correta
+O método db.AutoMigrate possui a funcionalidade de migrar modelos(structs) que estão em código Go para o banco de dados. Os modelos são criados no banco de dados utilizando como base os dados acessados a partir da referência de memória de uma ou mais structs que são passadas como parâmetro para o método db.AutoMigrate.
+ 
+Certo! O método db.AutoMigrate realmente possui a funcionalidade de migrar modelos que estão em código para o banco de dados.
+
+@@07
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito isso, excelente. Se ainda não fez, é importante que você implemente o que foi visto no vídeo para poder continuar com a próxima aula, que tem como pré-requisito todo o código escrito até o momento.
+
+Caso não encontre uma solução nas perguntas feitas por alunos e alunas deste curso, para comunicar erros e tirar dúvidas de forma eficaz, clique neste link e saiba como utilizar o fórum da Alura.
+Não tem dúvidas? Que tal ajudar alguém no fórum?
+
+https://cursos.alura.com.br/comunicando-erros-e-tirando-duvidas-em-foruns-c19
+
+@@08
+O que aprendemos?
+
+Nesta aula:
+Instalamos o Gorm para não escrever código sql, facilitando a comunicação da aplicação com o banco de dados;
+Conectamos a API com banco de dados e realizamos uma migração com base na struct de aluno;
+Alteramos o controle para exibir os alunos registrados no banco de dados!
+Na próxima aula
+Vamos aprender como criar, editar e deletar o cadastro de um aluno ou aluna!
+
