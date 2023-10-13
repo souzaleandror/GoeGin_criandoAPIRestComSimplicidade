@@ -575,3 +575,151 @@ Alteramos o controle para exibir os alunos registrados no banco de dados!
 Na próxima aula
 Vamos aprender como criar, editar e deletar o cadastro de um aluno ou aluna!
 
+#### 13/10/2023
+
+@04-Implementando rotas HTTP
+
+@@01
+Projeto da aula anterior
+
+Aqui você pode baixar o zip da aula 03 ou acessar os arquivos no Github!
+
+@@02
+Exibindo alunos do banco
+
+[00:00] Eu inseri três alunos na nossa base de dados e nós podemos enxergar isso no nosso servidor, status 200, maravilha, consegui inserir.
+[00:08] Tem aqui o aluno post, post, post, três alunos. Porém, quando eu faço uma requisição get, eu não vejo esses alunos que eu criei. Olha só, estou fazendo uma requisição get no "localhost:8080/alunos", ele me mostra a aluna Ana e me mostra o aluno Gui Lima.
+
+[00:24] Esses alunos são os alunos que estão alocados no nosso main. Deixa eu dar um "Ctrl +" no VS Studio, só para conseguirmos visualizar melhor. No nosso código main, observe que criamos uma lista de alunos e colocamos o Gui Lima e a Ana.
+
+[00:38] Não é isso o que eu quero, então eu vou fazer o que? Eu vou alterar, eu quero exibir, de fato, os dados que estão no banco de dados, desses alunos novos que eu criei. Como vamos fazer isso? Primeira coisa, vamos acessar o nosso controller responsável por exibir todos os alunos.
+
+[00:53] Eu vou em "controllers > controller.go", vou minimizar o menu, vou subir um pouco, saudação, ExibeTodosAlunos. Nós temos aqui um model, um modelo da nossa lista de alunos que nós criamos na mão.
+
+[01:06] Não é isso o que eu quero. Então, o que eu vou fazer? Primeira coisa, eu preciso identificar que eu quero exibir uma lista de alunos. Eu vou fazer algo super similar, eu vou criar um endereço de memória responsável por isso, será var alunos []. Eu vou colocar que alunos é uma lista de alunos.
+
+[01:28] Então do meu model aluno, a minha struct, eu vou falar: eu tenho uma lista de alunos, var alunos []models.Aluno. Como eu faço agora para pegar todos os alunos do banco de dados e exibir nessa função que estamos criando? Nós vamos pedir para o nosso banco de dados fazer isso.
+
+[01:45] Então database.DB, é a nossa função, nosso banco. O que eu quero fazer é encontrar, database.DB.Find(), encontre para mim todos os alunos, então endereço de memória, (&alunos). E quem eu exibo no final, é o model.Alunos? Não, serão esses alunos que eu acabei de criar aqui, c.JSON(200, alunos).
+
+[02:10] Então eu fiz isso, o que eu já posso fazer no nosso código, para deixar até melhor, no "main.go" eu já posso tirar da linha 11 à linha 14, esses meus alunos mocados, criados, que estávamos usando de teste. Salvei, tirei eles do main. Vou no meu modelo também, vamos deixar o nosso código bem bonito, bem organizado.
+
+[02:28] Esse var Alunos []Aluno que estávamos utilizando para gerar esses alunos, não vamos precisar mais. Dessa forma conseguiremos visualizar os alunos. Será? Vamos testar. Vou abrir o meu terminal, deixa eu puxar a janela para o lado, esse é o terminal do Go, então eu vou parar ele, "Ctrl + C".
+
+[02:51] Vou rodar ele mais uma vez, go run main.go. Ele está ouvindo na porta 8080, então o que eu vou fazer? No Postman vou fazer uma requisição get para alunos. Quando eu dou um "Enter", repare, ID 1, agora sim, a Ana no ID 1, com aquele CPF.
+
+[03:09] O ID 2 o Murilo, com o CPF e o ID 3, a Paula com RG e CPF. Puxa, Gui, ficou muito legal isso no Postman. De fato, estamos exibindo os alunos do banco de dados. Podemos até verificar mesmo. No pgAdmin, eu vou clicar com o botão direito em "aluno", visualizar as 100 primeiras linhas. Ele vai nos mostrar o ID 1, 2 e 3, três pessoas.
+
+[03:28] Ana, Murilo e Paula. Vou ver no nosso Postman mesmo. Aqui em cima a Ana, o Murilo e a Paula. Nós estamos exibindo os dados do banco de dados, isso ficou muito legal. À medida que eu insiro novos alunos aqui, nós conseguiremos visualizar esses alunos também. E aqueles alunos que estavam mocados no main, se eu atualizar no navegador, agora temos uma estrutura bem mais parecida com a do mundo real.
+
+[03:53] Nós temos os alunos com ID e essas outras informações também.
+
+@@03
+Exibindo aluno por Id
+
+[00:00] Nós conseguimos exibir todos os alunos e isso ficou incrível, os alunos do banco de dados, retornando JSON, isso ficou muito legal. Só que não conseguimos retornar um aluno só. Vamos supor que eu queira exibir apenas o aluno com o ID 1, então, no navegador, "localhost:8080/alunos/1". Nós recebemos um "404 page not found".
+[00:19] Isso não é legal. O que eu quero fazer agora é implementar com vocês exatamente isso, com base do ID dos alunos - e repare que cada aluno aqui, ele tem um ID.
+
+[00:28] ID 1, ID 2 e ID 3, eu quero exibir só as informações desse recurso específico. Vamos para o nosso código. A primeira coisa que eu vou fazer será criar uma nova função que faz isso, essa função, ela tem a responsabilidade de gerar novos alunos para nós. Eu vou colocar, por exemplo, aqui, no "controller.go", func- deixa eu ver como eu estou chamando as outras funções.
+
+[00:50] CriaNovoAluno, Saudacao, ExibeTodosAlunos. Essa função será a func BuscaAlunoPorID(). Esse BuscaAlunoPorID vai manter a convenção, (c *gin.Context{}). Agora vou em "routes.go", "Ctrl + P", vou digitar aqui "routes", "routes.go". Eu vou criar aqui uma nova requisição, que será capaz de retornar apenas um único aluno por ID.
+
+[01:18] Essa será uma requisição get também, r.GET(""), será em um endereço de ("/alunos"). Repare que vamos passar agora uma informação que vai variar, então vamos criar esse nosso endpoint para retornar e exibir esse único aluno. Como vamos fazer isso? Nós vamos fazer assim: eu vou digitar aqui ("/alunos/:id"), assim como fizemos com a nossa saudação.
+
+[01:47] Quem será responsável pelo controle, responsável por lidar com esse endpoint, será o nosso ("/alunos/:id", controller.BuscaAlunoPorID). O que esse BuscaAlunoPorId, ele vai ter? Primeira coisa, vamos precisar do endereço de memória de um aluno. Como é um aluno? Vamos criar esse cara - deixei tabulado. var aluno, ele é do tipo var aluno models.Aluno.
+
+[02:15] O que vamos precisar também é pegar aquele ID, que nós colocamos na nossa rota, esse valor, :id. Como fazemos isso? Vamos falar que o ID do aluno que vamos buscar, id := c.Params, que tem todo o contexto, todos os parâmetros das requisições, c.Params e podemos pesquisar por nome, por exemplo, c.Params.ByName(""). Entre parênteses eu passo o mesmo nome que eu dei no nosso routes, ("id").
+
+[02:42] E passei o ID. Então eu já sei como é um aluno, tenho a variável do aluno que eu vou exibir, tenho o ID. O que eu quero fazer agora é pesquisar este aluno no banco de dados. Banco de dados é o nosso database.DB., para ele encontrar o aluno e nos retornar o endereço do aluno mais aquele ID, nós vamos usar a nossa função database.DB.First().
+
+[03:09] Então o primeiro que você encontrar, o primeiro aluno, vou passar aqui, (&aluno), endereço de aluno, o (&aluno, id), que tenha esse ID, eu quero que você retorne para mim. Para finalizar, eu vou passar aqui, c.JSON(), para ele nos mostrar esse aluno que foi encontrado, (http.StatusOK, aluno), e vou falar esse aluno que encontramos, vou retornar esse aluno.
+
+[03:38] Então vá lá, encontre este aluno, guarde no endereço de memória desse aluno e exiba esse aluno na tela. Nós temos três alunos, no meu caso, ID 1, 2 e 3, então o que eu vou fazer? Abrir o nosso terminal, "Command + J", vou parar ele, "Ctrl + C" e vou rodar mais uma vez com go run main.go. Agora eu vou pesquisar alunos por ID.
+
+[03:59] Essa pesquisa, ela pode ser realizada tanto no Postman como no nosso navegador mesmo, requisições get. Vou começar com o Postman - não, vim para o navegador, vou começar o Postman? Vou começar com o navegador então. Se eu coloco aqui "localhost:8080/alunos", ele vai exibir todos.
+
+[04:17] ID 1, deixa eu ver, ID 1 é a Ana, ID 2 é o Murilo e o ID 3 é a Paula. Vou começar pela Paula, vou colocar "localhost:8080/alunos/3" e ele vai me mostrar só dados da Paula. Quando a Paula foi criada, esse registro foi criado, qual é o CPF e o RG. Se eu colocar o id 1, ele vai me mostrar apenas a Ana. O CPF dela, o RG. Se eu coloco o id 2, ele me mostra só o Murilo.
+
+[04:41] Maravilha, funcionou, no Postman também não teremos problema. Se eu não coloco nenhum, ele vai me mostrar todos os IDs. ID 1, ID 2, ID 3. Se eu coloco só o ID 1, ele me mostra só a Ana.
+
+[04:53] Com o RG e o CPF dela. Se eu colocar o ID 2, ele me mostra o ID 2. Se eu colocar o ID 3, ele me mostra o ID 3. Mas e se eu colocar o ID 200, o que vai acontecer? Sem roda antes, o que você acha que vai acontecer? Se eu digitar o ID 200 e der um "Enter"? Vamos ver, dei um "Enter".
+
+[05:13] Ele mostrou tudo vazio, o ID 0, created at com 0, o deleted at null, nome, CPF e RG vazios. Ele meio que está dizendo que esse aluno não foi encontrado, só que não estamos exibindo essa mensagem, de falar: “olha, o aluno não foi encontrado”. Ele devolve o status code de 200, ele falou ok, o aluno 200, beleza, está aqui o aluno 200.
+
+[05:37] E ele me mostra aqui tudo vazio, como se esse aluno fosse um aluno fantasma, e não é isso o que nós queríamos. Seria legal se pudéssemos exibir, de fato, uma mensagem, falando: “aluno não encontrado”. É isso o que vamos fazer na próxima aula.
+
+@@04
+Aluno não encontrado
+
+[00:00] Assim que pesquisamos um aluno que não existe, um ID bizarro, por exemplo 200, nós recebemos aqui ID 0, created at com esse valor, deleted at nulo, nome, RG e CPF com uma string vazia.
+[00:14] O que eu quero fazer é exibir uma outra mensagem, eu quero indicar o status, por exemplo, 404 e exibir uma mensagem, por exemplo, “aluno não encontrado”. Vamos fazer isso? Para fazermos isso, vamos alterar a nossa função que busca todos os alunos. A primeira coisa que vamos fazer é verificar, depois da análise do banco de dados, ele foi no banco de dados e ele falou: olha, vá e busque esse aluno com esse ID.
+
+[00:40] Se eu o ID for igual a 0, esse aluno não foi encontrado, então eu posso criar um if, uma verificação. if aluno.ID == 0{}, o que aconteceu? Significa que estamos com esse cenário aqui.
+
+[00:55] Nesse cenário nós queremos mudar aquela nossa mensagem. Se queremos mudar a mensagem, c.JSON() e podemos colocar, por exemplo, um status code de 404. Para deixarmos o nosso código mais chique, vou colocar aqui um c.JSON(http.Status) - status not found, deixa eu encontrar aqui.
+
+[01:17] Deixa eu escrever, (http.StatusNotFound, ) e aqui eu vou passar a nossa mensagem. (http.StatusNotFound, gin.H{}), vamos passar a nossa mensagem. Eu vou passar uma mensagem, por exemplo, com o clássico * not found*, "Not Found":, que significa não encontrado. Vou pôr aqui, vou passar uma mensagem de texto, por exemplo, : "Aluno não encontrado".
+
+[01:51] Salvei esse código. Vamos testar? Antes de testar, paro o meu servidor, "Ctrl + L" e rodo o servidor. Se eu continuar rodando o servidor, eu não conseguirei ver essa mensagem de erro. Fiz uma sintaxe errada aqui, vamos ver, o que eu esqueci? Aluno não encontrado, fechei ali. Deixa eu voltar essas duas chaves para cima.
+
+[02:11] O que eu vou fazer? Assim que voltamos, eu quero que esse status não seja exibido, então eu vou colocar aqui em cima um return.
+
+[02:19] Assim ele já dá a mensagem certa. Agora está certo, vamos lá, rodando o código mais uma vez, subiu o servidor, subiu. Repare, é assim que ficou o nosso código que busca o aluno.
+
+[02:32] Depois que ele vai para o banco de dados, verifica se o ID for 0, mande essa mensagem de not found. Vamos começar com um caso de sucesso, para ver que está funcionando, que continua funcionando. ID 2, Murilo, ID 1, a Ana, ID 3, a Paula.
+
+[02:45] E se eu coloco o ID 300? Não vai aparecer Leônidas, nem nada, de Esparta. Dei o 300, aluno não encontrado, not found.
+
+[02:54] O aluno 500, só para termos certeza, o ID 500 not found, o ID 5 também não tem ninguém, not found, maravilha. Status code not found, isso ficou lindo, ficou muito mais parecido com as nossas APIs do mundo real. No navegador, ID 10, not found, aluno não encontrado.
+
+[03:10] Mas, se eu coloco o ID 1, nós temos a nossa querida Ana. Dessa forma conseguimos informar, deixar a nossa API mais fácil a usabilidade dela.
+
+@@05
+200 ou 404
+
+Nesta aula, alteramos nosso controle que Busca Aluno por ID verificando se o ID do aluno é igual a 0, como ilustra o código abaixo:
+func BuscaAlunoPorID(c *gin.Context) {
+    …código omitido
+
+    if aluno.ID == 0 {
+        c.JSON(http.StatusNotFound, gin.H{
+            "Not found": "Aluno não encontrado"})
+        return
+    }
+
+    c.JSON(http.StatusOK, aluno)
+}COPIAR CÓDIGO
+Sabendo disso, analise as afirmações abaixo, assinale apenas as afirmações verdadeiras em relação ao código acima:
+
+Caso o aluno.ID seja igual a 0, respondemos a requisição com uma mensagem indicando que o aluno não foi encontrado.
+ 
+Alternativa correta! Certo! Caso o id seja igual a 0, informamos que o aluno não foi encontrado.
+Alternativa correta
+Caso o aluno.ID seja igual a 1 e esse recurso existir no banco de dados, retornamos 404 indicando que o aluno foi encontrado.
+ 
+Alternativa correta
+Caso o aluno.ID seja igual a 0, a API retornará um status 200.
+ 
+Alternativa correta
+Caso o aluno.ID seja igual a 0, a API retornará um status 404.
+ 
+Alternativa correta! Certo! Além da mensagem de aluno não encontrado, usamos o status 404 para indicar que o recurso não existe.
+
+@@06
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito isso, excelente. Se ainda não fez, é importante que você implemente o que foi visto no vídeo para poder continuar com a próxima aula, que tem como pré-requisito todo o código escrito até o momento.
+
+Caso não encontre uma solução nas perguntas feitas por alunos e alunas deste curso, para comunicar erros e tirar dúvidas de forma eficaz, clique neste link e saiba como utilizar o fórum da Alura.
+Não tem dúvidas? Que tal ajudar alguém no fórum?
+: )
+
+@@07
+O que aprendemos?
+
+Nesta aula:
+Alteramos o controller para exibir alunos do banco de dados;
+Criamos um endpoint para exibir alunos por ID;
+Alteramos o comportamento da API para exibir uma mensagem quando o ID do aluno não for encontrado;
+Na próxima aula
+Vamos finalizar nosso CRUD criando um endpoint para deletar e editar os alunos. Além disso, vamos criar uma funcionalidade que busca alunos por CPF!
