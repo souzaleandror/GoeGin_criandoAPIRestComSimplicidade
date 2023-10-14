@@ -723,3 +723,201 @@ Criamos um endpoint para exibir alunos por ID;
 Alteramos o comportamento da API para exibir uma mensagem quando o ID do aluno não for encontrado;
 Na próxima aula
 Vamos finalizar nosso CRUD criando um endpoint para deletar e editar os alunos. Além disso, vamos criar uma funcionalidade que busca alunos por CPF!
+
+#### 14/10/2023
+
+@04-Deletando, editando e buscando alunos
+
+@@01
+Projeto da aula anterior
+
+Aqui você pode baixar o zip da aula 04 ou acessar os arquivos no Github!
+
+@@02
+Deletando alunos
+
+[00:00] Ao analisar os endpoints que nós temos na nossa API, podemos verificar que temos aqui uma forma de exibir todos os alunos, criar novos alunos e buscar alunos por ID.
+[00:10] Só que uma ação muito conhecida é conseguirmos deletar um aluno, remover um determinado recurso através de uma requisição delete. Então, o que queremos fazer agora é deletar os nossos alunos do banco de dados. Vamos supor que algum aluno foi inserido de forma incorreta e eu preciso deletar aquela informação, ou o aluno não faz parte mais da nossa base de dados.
+
+[00:34] A primeira coisa que eu vou fazer será criar uma função responsável por deletar os nossos alunos. Se observamos as nossas funções, estamos com CriaNovoAluno, BuscaAlunoPorID.
+
+[00:44] Aqui será func DeletaAluno(). A nossa função DeletaAluno terá o parâmetro (c *gin.Context), como padrão, e, nos nossos endpoints em "routes.go", teremos um endpoint responsável só por deletar esse nosso aluno, r.DELETE().
+
+[01:06] Toda requisição que recebermos com delete em ("/alunos/:id", ), um determinado ID, nós vamos indicar o ID do aluno que queremos deletar. E vamos chamar quem? Dos nossos controllers, alguém que delete esse aluno, então , controllers.DeletaAluno).
+
+[01:33] Já temos o endpoint e temos a nossa função. Vamos agora criar a nossa função. A primeira coisa que precisaremos fazer é ter o modelo do nosso aluno, para conseguirmos identificar esse aluno para que ele seja deletado. Em "controllers.go", var aluno, ele será do tipo var aluno models.Aluno.
+
+[01:48] Depois precisaremos do ID desse aluno que vamos deletar, então o id := c.Params.ByName(), vou colocar aqui o ("id") que queremos deletar. Agora podemos ir para o nosso banco de dados deletar esse aluno, database.DB.Delete(), esse comando aqui. O que vamos fazer?
+
+[02:14] Vamos passar o endereço de memória desse aluno que queremos deletar mais o ID, (&aluno, id). Para finalizar, assim que esse aluno é deletado, é legal nós informarmos, mandarmos uma mensagem falando: “aluno deletado com sucesso”. Então vou passar aqui uma mensagem c.JSON().
+
+[02:34] Eu vou colocar o status como ok, (http.StatusOK, gin.H{}). Eu vou passar aqui uma mensagem. Essa mensagem eu vou passar nessa linha mesmo, {"data":"Aluno deletado com sucesso"}. Salvei esse código.
+
+[03:06] Abrindo o nosso terminal, fechando o nosso servidor - deixa eu minimizar só o tamanho para conseguirmos visualizar melhor. Vou rodar mais uma vez, go run main.go, vamos no nosso código, e esse código precisamos rodar no Postman. Dou aqui um get, só para lembrar, tenho três alunos.
+
+[03:27] Aluno 1, 2 e 3, eu vou deletar o aluno 1. Eu vou pegar do aluno, vou pegar só o aluno 1, que é o aluno Ana, e vou realizar o delete dela. Deletei.
+
+[03:41] "data":"Aluno deletado com sucesso", status ok. Se eu clicar para deletar de novo o aluno 1, vamos ver o que aparece? Não aparece nada. Se eu quiser deletar o aluno 10? Aluno 10, aluno deletado com sucesso. Nem tem esse aluno, mas ele está exibindo essa mensagem, não alterou em nada a nossa aplicação.
+
+[03:59] Vou no get, dou um send e temos um not found no get no aluno 10. Se eu venho em todos os alunos, agora temos quantos alunos? Dois alunos, o ID 2 que é o nosso Murilo e o ID 3 que é a Paula.
+
+[04:12] Dessa forma conseguimos deletar alunos do nosso banco de dados.
+
+@@03
+Editando alunos
+
+[00:00] Analisando a nossa API, nós podemos criar um novo aluno, nós podemos exibir todos os alunos da nossa base de dados, nós podemos deletar um aluno por if, exibir informações de um único aluno também por ID.
+[00:12] Só que uma ação que é muito clássica e conhecida, para fecharmos o nosso CRUD, é conseguir editar um determinado aluno. Então eu passei o ID 2, eu quero editar esse ID 2, algum campo específico. Vamos fazer isso? A primeira coisa que eu vou fazer será criar uma função responsável pela atualização desse aluno, para essa edição do aluno.
+
+[00:35] Vou criar no "controller.go" uma função - agora sim, func EditaAluno(). Ela será também do tipo (c *gin.Context). No "routes.go" eu vou criar um endpoint específico para conseguirmos editar esse nosso aluno. r.PATCH(), para conseguirmos editar, e o endpoint que vamos usar será o mesmo, ("/alunos/:id", ), para conseguirmos visualizar.
+
+[01:12] Fechei as aspas, vírgula, quem será o responsável por editar, será alguém do , controllers.EditaAluno). Pronto, já temos o nosso endpoint definido.
+
+[01:24] Vou voltar no meu código do "controller.go" para conseguirmos editar esse nosso aluno. Primeira coisa que vamos pensar: eu preciso de uma variável para armazenar os dados que eu vou editar desse aluno. Então terei uma nova variável, var aluno, que é do tipo var aluno models.Aluno, a nossa struct.
+
+[01:42] Vou colocar, vou pegar o valor do ID que eu passei como parâmetro, id := c.Params.ByName(), o nome será ("id"), o mesmo no que demos lá. Agora, pensem comigo: se eu quero editar um determinado aluno, olha que interessante, vamos supor que eu quero editar, alterar o nome de um aluno que foi cadastrado errado.
+
+[02:02] O nome do aluno, vou pegar o aluno 2, que é o aluno Murilo, o nome dele está errado, o nome dele era para ser Marcos. O que vai acontecer? Eu precisarei enviar uma requisição do tipo patch, que nós colocamos no "routes.go" - vou voltar no nosso Postman. Vou enviar uma requisição do tipo patch para editar o aluno 2 e essa requisição terá um corpo.
+
+[02:27] O corpo dessa requisição terá as informações que eu quero editar desse aluno. Se tem o corpo, qual é a forma mesmo que nós pegamos? Usando o should bind JSON. Em "controller.go", vou fazer a verificação para pegarmos, empacotarmos todo o corpo dessa requisição com base na struct que temos vinculada, no nosso caso, aluno.
+
+[02:50] Vou colocar aqui, vou verificar se temos algum erro, if err := c.ShouldBindJSON(), então empacota todo o corpo dessa requisição com base no endereço de memória de aluno, (&aluno);. Vou colocar um ponto e vírgula e vou verificar, se o erro não for igual a nulo, err != nill {}, e vou passar aqui uma mensagem.
+
+[03:18] Vamos supor que algo deu errado no corpo dessa requisição, então vou enviar uma mensagem c.JSON(), vou colocar um HTTP de bad request, (http.StatusBadRequest,, vou passar uma mensagem, , gin.H{}). Essa mensagem será uma mensagem de erro, então "error": e vou informar qual é o erro que nós temos : err.Error(), para ele exibir essa mensagem de erro
+
+[03:51] Caso ele exiba essa mensagem de erro, eu não quero que mais nada aconteça, então vou dar um return para ele sair dessa nossa função. Então, se tivermos um erro é isso o que vai acontecer, se tivermos um erro no corpo da requisição, no empacotamento do corpo dessa requisição, nós já sabemos que ele vai retornar essa mensagem e vai sair dessa nossa função.
+
+[04:09] Caso não tenhamos o erro, deu certo, o corpo da requisição veio certo, nós precisamos atualizar os dados desse aluno que estamos procurando. O que vamos fazer? Vamos pesquisar este nosso aluno. Então antes de exibirmos essa mensagem de ShouldBindJSON, eu vou pesquisar esse aluno.
+
+[04:28] Vou pedir para o meu banco de dados, database.DB.First(), encontre esse cara, o endereço de memória aluno, se trata de aluno, e o ID é esse ID aqui, (&aluno, id). Ele pesquisou esse ID e ele vai tentar empacotar o corpo dessa requisição. Ele empacotando o corpo da requisição e deu sucesso, o que eu quero fazer agora é o seguinte, eu quero pegar o meu modelo do banco de dados de aluno e atualizar todas as informações desse aluno.
+
+[05:00] Eu vou pegar o meu database mais uma vez, database.DB.Model(), vá e pegue o meu modelo de aluno, (&aluno). E eu quero fazer o quê? Atualizar as colunas, (&aluno).UptadeColumns(), atualize todas as colunas. Mas com base em quem? Com base nesse (aluno) que nós passamos no corpo da requisição.
+
+[05:27] No final vamos exibir uma mensagem, para deixar a nossa edição completa. Vou passar aqui c.JSON() indicando que conseguimos atualizar esse aluno com sucesso, (http.StatusOK, aluno), informando o aluno que nós atualizamos.
+
+[05:52] Criamos então a função que edita esse aluno, nós criamos também aqui o nosso endpoint com a ação patch, o que eu vou fazer agora é parar o nosso servidor - nosso terminal está bem pequeno, volte para cima. Pare todo mundo e rode todo mundo de novo, go run main.go.
+
+[06:09] "Command + J", vamos voltar no nosso Postman. Agora será a hora da verdade. Então, só para recapitularmos, o aluno 2 é o aluno Murilo, está aparecendo aqui embaixo, aluno Murilo.
+
+[06:22] Bacana, mas erramos o nome dele. Tudo está certo, o RG, o CPF, mas erramos o nome dele, o nome dele real é Marcos. Não estamos levando em conta, nesse momento, esses valores do RG e do CPF e essa validação, isso vai ficar para uma próxima etapa, nós não faremos isso agora. O nosso foco é conseguir atualizar essas informações.
+
+[06:44] Eu vou alterar aqui o método para o "PATCH", que nós colocamos, para mudar o nome dele para Marcos. Dei um "Send" e alteramos: ID 2, tem essas informações: quando ele foi criado e quando ele foi atualizado, tem todos esses dados.
+
+[06:58] E agora nós atualizamos o nome dele para Marcos. Para termos certeza, vou fazer uma requisição get exibindo todos os alunos. Nós temos o ID 2, Marcos, e o ID 3, Paula. Vou voltar no nosso Google mesmo, vou fazer no navegador.
+
+[07:16] Temos o ID 2 - o ID 2, aqui, o nome Marcos. E o ID 3, o nome Paula. E se eu fizer uma requisição para um ID que não tem? No Postman, vou colocar, por exemplo, uma requisição patch para um ID que não tem. Eu vou colocar "/500", não temos nenhum aluno registrado com 500 - vou fazer uma requisição get, aluno não encontrado.
+
+[07:37] Mas e se eu faço uma requisição patch para o aluno 500, informando o Marcos e esses valores? Olha só, dei o send, ele mostrou esses valores, essas informações, só que se eu volto, dou um get de novo em 500, ele fala que não foi encontrado.
+
+[07:52] Isso ficou muito legal. De fato, a nossa função patch, ela só altera alguns campos da nossa base de dados.
+
+@@04
+Search de alunos
+
+[00:00] Agora que completamos o nosso CRUD, eu quero criar uma funcionalidade a mais na nossa API. O que eu quero fazer é conseguir buscar alunos, procurar alunos por CPF. Nós já conseguimos visualizar um aluno, exibir as informações, criar, buscar, deletar, editar, ficou incrível isso, só que eu quero buscar um aluno, quero digitar um determinado CPF e exibir as informações desse aluno, caso este aluno exista, esse CPF exista.
+[00:25] O que eu vou fazer? Primeira coisa, vamos criar uma função, em "controller.go", que terá essa responsabilidade. func BuscaAlunoPorCPF(), essa nossa função terá como argumento, entre os parênteses, (c *gin.Context). Em "routes.go" vou criar o nosso endpoint, nosso endpoint será r.GET(), uma requisição get.
+
+[00:50] Onde, em ("/alunos/cpf"), no plural, CPF - poderia colocar outra coisa, busca por CPF, busca, search em inglês, procura, vou colocar só "/alunos/cpf/:cpf", ). Vou colocar uma vírgula e vou vincular agora esse endpoint com o nosso controller, , controllers.BuscaAlunoPorCPF).
+
+[01:19] Pronto, já temos agora esse vínculo. No meu "controller.go", vamos implementar essa funcionalidade. Primeira coisa, teremos o nosso aluno, então var aluno, que será do tipo var aluno models.Aluno. Precisaremos buscar o CPF, que foi passado por parâmetro, será cpf := c.Params. e eu vou buscar de outra forma. Nós sempre colocamos c.Params.ByName e tal, eu vou colocar só c.Param, no singular.
+
+[01:49] E vou colocar o nome, c.Param("cpf"), entre aspas e entre parênteses. CPF, maravilha. O que eu vou fazer é, agora que eu já tenho o meu modelo de aluno e tenho o meu CPF, eu posso pesquisar, pedir para o Gorm, pedir para o banco de dados: banco de dados, eu preciso de um aluno que tenha esse CPF aqui. Como fazemos isso?
+
+[02:11] Nós usamos o nosso database.DB.Where(), olha que interessante, eu quero procurar. Lembra que a grande sacada de usarmos um ORM é que não precisamos escrever esse SQL na mão, select from * alunos, não sei o quê e tal, where CPF é igual a esse determinado valor. O ORM vai fazer isso para nós. Nós vamos vincular tudo, utilizando o Gorm junto com o Gin para fazer essa nova funcionalidade na nossa API.
+
+[02:44] Então eu vou pedir para ele procurar. Primeira coisa, eu vou precisar, como argumento, da nossa struct de aluno. Então vou pegar aqui o endereço de memória da nossa struct de aluno, (&models.Aluno{}) e vou instanciar aqui, como se fosse entre chaves. Eu vou colocar aqui {CPF:}, em maiúsculo, que é o CPF da minha struct de aluno, e vou passar o valor do CPF que trouxemos aqui, {CPF: cpf}.
+
+[03:12] Eu vou falar: vá, procure um aluno que tenha exatamente esse CPF e devolva o primeiro aluno que você encontrar, {CPF: cpf}).First(), .First() do nosso endereço de aluno, (&aluno) e armazene todas essas informações nessa variável de aluno que nós temos.
+
+[03:31] Vamos relembrar então o que nós fizemos? Pedi para o meu banco de dados procurar, where, então vá no meu banco de dados e traga, com base no nosso modelo de alunos, eu quero um aluno que tenha exatamente esse CPF. Encontre para mim e armazene todas essas informações no endereço de memória de aluno.
+
+[03:49] Vamos supor que o aluno não foi encontrado, então vai retornar um 0, aquela informação 0. Nós podemos informar, assim como fizemos na nossa função BuscaAlunoPorID, dar uma mensagem: aluno não encontrado. Vamos fazer isso? Eu vou usar uma cola aqui, vou copiar da função BuscaAlunoPorID, é exatamente esse código aqui.
+
+[04:12] Caso o id == 0, não queremos exibir aquele ID 0, o nome, RG e CPF como string vazia. Então eu vou copiar essas três linhas de código aqui, da linha 40 à linha 45, if aluno.ID == 0, devolve o status code not found, põe a mensagem aluno não encontrado. Vou colocar ele no BuscaAlunoPorCPF, "Ctrl + C", "Ctrl + V", e tem o return, maravilha.
+
+[04:35] Caso não tenhamos nenhum erro, caso o ID do aluno seja maior do que 0, não seja 0, nós vamos informar, daremos uma mensagem. Essa mensagem será c.JSON(), informando o (http.StatusOK, ) e vou passar qual é esse aluno que estamos procurando, buscando esse aluno, , aluno).
+
+[05:00] Então temos a rota, com o nosso CPF, pegamos esse CPF e vinculamos ao nosso controller de buscar o aluno por CPF, passamos aqui, ficou bem lindo. Parei o meu servidor, vou rodar o meu servidor mais uma vez. Para ficar mais fácil esse exemplo, o que eu recomendo?
+
+[05:17] Eu estou usando aqui valores arbitrários para RG e CPF, assim como eu disse no vídeo anterior, nós não incluímos uma validação. Isso vamos deixar para uma outra parte, um outro momento. Então, o que eu vou fazer? Se eu dou uma requisição get, no Postman, em alunos, eu tenho o ID 2, que é o Marcos, o ID 3, que é a Paula, e o ID 7, que é um aluno novo, que o CPF dele é bem fácil, só para testarmos, 123.
+
+[05:40] O que eu quero fazer? Em "localhost:8080/alunos/" nós temos o "/cpf/123". O que eu quero que aconteça? Quando eu dar o "Send", eu quero visualizar apenas esse aluno. Dei o "Send" e tenho o aluno novo, 123 o CPF dele.
+
+[05:56] Gui, ficou legal, mas será que o da Paula vai funcionar também? Vamos visualizar qual é o CPF da Paula? Eu vou rodar tudo aqui, estou no ID 3, o CPF da Paula é esse aqui, 123456780. Então "localhost:8080/alunos/cpf/" e esse valor, "/123456780". Dei a requisição, enviei a requisição, temos aqui a Paula.
+
+[06:17] Isso podemos testar no navegador também, então "localhost:8080/alunos/cpf/123456780", nós só conseguimos visualizar a Paula. Se eu colocar "/alunos/cpf/123", só visualizo aqui. E se eu colocar um CPF que não tem? Vou colocar o "/alunos/cpf/000". Dou um send, "Not found: aluno não encontrado".
+
+[06:36] Ótimo, exatamente isso o que eu queria. Dessa forma, nós conseguimos criar uma maneira, criar uma nova funcionalidade para a nossa API, que é buscar com base em um determinado campo que nós temos. Nós estamos utilizando um exemplo lúdico de aluno, mas poderia ser qualquer outro campo. Puxa, Gui, eu quero colocar além do CPF, o RG. Você pode criar com base neste vídeo que fizemos agora.
+
+@@05
+Cabeçalho Content-Type
+
+Durante nosso treinamento, vimos que não é interessante entregar ou renderizar sempre uma página HTML, já que existem dispositivos e finalidades que não utilizarão o HTML, mas sim expor os dados.
+Dito isso, qual o primeiro passo para criar uma aplicação integrável?
+
+Devemos transformar nossa aplicação em uma Single Page Application.
+ 
+Alternativa correta
+Devemos entregar os dados apenas no formato JSON, já que é o único formato aceito por outras aplicações e o Gin só funciona nesse formato.
+ 
+Alternativa correta
+Retornar dados no formato JSON.
+ 
+Certo! Devemos entregar nossos dados em formatos mais acessíveis para agentes intermediários como outros desenvolvedores ou aplicações.
+
+@@06
+Faça como eu fiz
+
+Chegou a hora de você seguir todos os passos realizados por mim durante esta aula. Caso já tenha feito isso, excelente. Se ainda não fez, é importante que você implemente o que foi visto no vídeo.
+
+Caso não encontre uma solução nas perguntas feitas por alunos e alunas deste curso, para comunicar erros e tirar dúvidas de forma eficaz, clique neste link e saiba como utilizar o fórum da Alura.
+Não tem dúvidas? Que tal ajudar alguém no fórum?
+
+@@07
+Projeto final do curso
+
+Aqui você pode baixar o zip da aula 05 ou acessar os arquivos no Github!
+
+https://github.com/alura-cursos/api_rest_gin_go/archive/refs/heads/aula_5.zip
+
+https://github.com/alura-cursos/api_rest_gin_go/tree/aula_5
+
+@@08
+O que aprendemos?
+
+Nesta aula:
+Adicionamos um endpoint com método Delete para deletar um aluno e removê-lo do banco de dados;
+Adicionamos um endpoint com método Patch para atualizar o cadastro de um aluno;
+Criamos um endpoint para buscar alunos pelo número do CPF;
+
+@@09
+Parabéns
+
+Chegou o momento de celebrar sua grande conquista!
+
+
+Neste treinamento, todas as barreiras foram vencidas e você aprofundou ainda mais seus conhecimentos com a linguagem Go e o framework Gin.
+
+Você desenvolveu uma API Rest do zero, criando rotas, endpoints, modelos e conectou sua aplicação com um banco de dados Postgres por meio do Docker. Além disso, implementou o CRUD completo de alunos e criou uma funcionalidade que busca alunos por CPF.
+
+Quanta coisa legal!
+
+Mostre a aplicação que desenvolveu para outras pessoas e marque a Alura nas redes sociais com a #alurago, porque vamos olhar seu projeto e curtir o que fez. Para me seguir no Instagram ou Linkedin.
+
+Agora, dê uma nota para o curso, pegue seu certificado e comemore bastante essa conquista.
+"A imaginação é mais importante que o conhecimento.” (Albert Einstein)
+
+Parabéns!!!
+
+Guilherme Lima
+
+https://linktr.ee/guilimadev
+
+https://linktr.ee/guilimadev
+
+@@10
+Conclusão
+
+[00:00] Se você chegou até aqui, parabéns, você está finalizando mais um treinamento. Este treinamento foi muito legal para mim, eu espero que você tenha gostado também. Nós criamos uma API do zero e você incluiu várias funcionalidades nessa API. Nós somos capazes de criar recurso, deletar, editar, exibir e até buscar recursos com base em tudo o que vimos no nosso treinamento.
+[00:22] Eu espero que você tenha gostado desse curso, não deixe de estudar GO, não se esqueça de dar a nota do curso, a avaliação, isso é muito importante também. Nos encontramos em um próximo treinamento.
+
